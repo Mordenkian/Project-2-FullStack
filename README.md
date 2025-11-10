@@ -6,12 +6,12 @@ Doing these two things should suffice that the testing environment is ready for 
 
 If the environment is still not working due to something missing try making sure that npm files are installed correctly. 
 The ones being used as far as I am aware:
-React
-Express
-Typescript
-mongoose
-mongodb
-cors
-React dom and react router dom
+React,
+Express,
+Typescript,
+mongoose,
+mongodb,
+cors,
+React dom and react router dom.
 
 Note for website coding: Most of the actual work should be done either in the server.js for backend work or in the App.jsx file for frontend work. Additional pages should be put in the src folder where the App.jsx file is located in. Same with css and other design customization. 
