@@ -46,6 +46,26 @@ const SavedLocationsPage = () => {
     }
   };
 
+  const handleDelete = async (cityId: string) => {
+    try {
+      const response = await fetch(`http://localhost:3000/cities/${cityId}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        // As per our server implementation, we send the userId for verification
+        body: JSON.stringify({ userId: userId }),
+      });
+
+      if (response.ok) { // A 204 No Content response is considered "ok"
+        fetchCities(); // Refresh the list after successful deletion
+      } else {
+        console.error('Failed to delete city:', await response.json());
+      }
+    } catch (error) {
+      console.error("Could not delete city:", error);
+    }
+  };
   return (
     <div className="saved-cities-container">
       <h2>My Saved Places</h2>
@@ -54,7 +74,12 @@ const SavedLocationsPage = () => {
         <button type="submit">Save</button>
       </form>
       <ul>
-        {savedCities.map((city) => (<li key={city._id}>{city.name}</li>))}
+        {savedCities.map((city) => (
+          <li key={city._id}>
+            <span>{city.name}</span>
+            <button onClick={() => handleDelete(city._id)}>Delete</button>
+          </li>
+        ))}
       </ul>
     </div>
   );
