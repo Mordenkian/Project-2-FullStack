@@ -1,6 +1,24 @@
 import './App.css'
+import { getUserId } from './getUserId';
+import React, { useState, useEffect, type FormEvent } from 'react';
 
-import React, { useState, useEffect } from 'react';
+// --- TYPE DEFINITIONS ---
+// These interfaces describe the shape of the data we expect from our state and APIs.
+interface LocationData {
+  city: string;
+  region_name: string;
+  country_name: string;
+}
+
+interface WeatherData {
+  temperature: number;
+}
+
+interface SavedCity {
+  _id: string;
+  name: string;
+  userId: string;
+}
 
 const App = () => {
   // --- STATE MANAGEMENT ---
@@ -9,17 +27,17 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   // State to handle any errors during the fetch
   const [error, setError] = useState<string | null>(null);
-
   const[weatherData, setWeatherData] = useState<WeatherData | null>(null);
 
-  
   const [inputCity, setInputCity] = useState('');
   const [savedCities, setSavedCities] = useState<SavedCity[]>([]);
-  
+  const userId = getUserId();
 
   useEffect(() => {
-    const fetchLocation = async () => {
+  
+    const fetchInitialData = async () => {
       setIsLoading(true);
+      fetchCities(); // Fetch saved cities right away.
       setError(null);
       try {
         // --- MOCK DATA FOR LOCATION ---
@@ -38,26 +56,26 @@ const App = () => {
          const response = await fetch(`http://api.ipstack.com/check?access_key=${locationKey}&output=json`);
          if (!response.ok) throw new Error('Failed to fetch location');
          const locationData = await response.json();
-         console.log("Location detected:", locationData);
-         setLocationData({ city: locationData.city, region: locationData.region_name, country: locationData.country_name });
+         console.log("Location detected:", locationData); // Note: ipstack response might differ
+         setLocationData({ city: locationData.city, region_name: locationData.region_name, country_name: locationData.country_name });
         */
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred while fetching location.');
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchLocation();
-  }, []);
-
-  useEffect(() => {
-    fetchCities(); // Call our helper function immediately
+    fetchInitialData();
   }, []);
   const fetchCities = async () => {
     try {
-      const response = await fetch('http://localhost:3000/cities');
-      const data = await response.json();
+      const response = await fetch(`http://localhost:3000/cities/${userId}`);
+      const data: SavedCity[] = await response.json();
       
       setSavedCities(data);
     } catch (error) {
@@ -65,7 +83,7 @@ const App = () => {
     }
   };
 
-  const handleSave = async (e) => {
+  const handleSave = async (e: FormEvent) => {
     e.preventDefault(); // Crucial: Stops the page from refreshing!
 
     // Don't try to save if the box is empty
@@ -76,9 +94,9 @@ const App = () => {
         method: 'POST', 
         headers: {
           'Content-Type': 'application/json', // Telling server: "I am sending JSON"
-        // 2. The actual content of the "letter"
-        body: JSON.stringify({ name: inputCity }),
-      }});
+        },
+        body: JSON.stringify({ name: inputCity, userId: userId }),
+      });
       if (response.ok) {
         setInputCity(''); // Clear the input box (make it ready for next one)
         fetchCities();    // RE-RUN Step 2 to get the freshest list from the server
@@ -109,8 +127,12 @@ const App = () => {
          if (!response.ok) throw new Error('Failed to fetch weather');
          const weatherData = await response.json();
          setWeatherData(weatherData.current); */
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError('An unknown error occurred during weather fetch.');
+        }
       }
     }
     fetchWeather();

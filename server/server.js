@@ -10,16 +10,19 @@ app.use(express.json()); // Enable express to parse JSON bodies
 // MongoDB Connection
 mongoose.connect('mongodb+srv://jwang7041:7041Nestings%25@cluster0.cmuuf0a.mongodb.net/SavedLocations');
 
-const ProjectSchema = new mongoose.Schema({
-    name: { type: String, required: true, unique: true},
+
+const CitySchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    userId: { type: String, required: true },
 });
 
-const City = mongoose.model('Cities', ProjectSchema);
+CitySchema.index({ name: 1, userId: 1 }, { unique: true });
 
+const City = mongoose.model('Cities', CitySchema);
 
-app.get('/cities', async (req, res) => {
+app.get('/cities/:userId', async (req, res) => {
     try {
-        const cities = await City.find({});
+        const cities = await City.find({ userId: req.params.userId });
         res.json(cities);
     } catch (err) {
         console.error(err);
@@ -29,12 +32,17 @@ app.get('/cities', async (req, res) => {
 
 app.post('/cities', async (req, res) => {
   try {
-    const newCity = new City({ name: req.body.name });
+    const { name, userId } = req.body;
+    if (!name || !userId) {
+      return res.status(400).json({ error: 'City name and userId are required.' });
+    }
+
+    const newCity = new City({ name, userId });
     const savedCity = await newCity.save();
     res.json(savedCity);
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(400).json({ error: 'City already saved' });
+      return res.status(400).json({ error: 'This city has already been saved.' });
     }
     res.status(500).json({ error: err.message });
   }
