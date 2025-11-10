@@ -22,20 +22,25 @@ const App = () => {
       setIsLoading(true);
       setError(null);
       try {
-        const locationKey = '7abc0787623efaa1bbd42a880632dfc7'
+        // --- MOCK DATA FOR LOCATION ---
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+        const mockLocationData = {
+          city: 'Berkeley',
+          region_name: 'California',
+          country_name: 'United States',
+        };
+        console.log("Location (mock):", mockLocationData);
+        setLocationData(mockLocationData);
+        // --- END MOCK DATA ---
 
-        const response = await fetch(`http://api.ipstack.com/check?access_key=${locationKey}&output=json`);
-        if (!response.ok) throw new Error('Failed to fetch location');
-
-        const locationData = await response.json();
-
-       
-        console.log("Location detected:", locationData);
-        setLocationData({
-          city: locationData.city || 'Unknown',
-          region: locationData.region_name || 'Unknown',
-          country: locationData.country_name,
-        });
+        /* --- REAL API CALL (Commented Out) ---
+         const locationKey = '7abc0787623efaa1bbd42a880632dfc7'
+         const response = await fetch(`http://api.ipstack.com/check?access_key=${locationKey}&output=json`);
+         if (!response.ok) throw new Error('Failed to fetch location');
+         const locationData = await response.json();
+         console.log("Location detected:", locationData);
+         setLocationData({ city: locationData.city, region: locationData.region_name, country: locationData.country_name });
+        */
       } catch (err: any) {
         setError(err.message);
       } finally {
@@ -67,15 +72,13 @@ const App = () => {
     if (!inputCity.trim()) return;
 
     try {
-      // 1. Send the "letter" to the server
       const response = await fetch('http://localhost:3000/cities', {
-        method: 'POST', // We are SENDING data
+        method: 'POST', 
         headers: {
           'Content-Type': 'application/json', // Telling server: "I am sending JSON"
-        },
         // 2. The actual content of the "letter"
         body: JSON.stringify({ name: inputCity }),
-      });
+      }});
       if (response.ok) {
         setInputCity(''); // Clear the input box (make it ready for next one)
         fetchCities();    // RE-RUN Step 2 to get the freshest list from the server
@@ -91,13 +94,21 @@ const App = () => {
     
     const fetchWeather = async () => {
       try {
-        const weatherKey = "675b5dd3143ca6e34b7161c75e3f41c7"
-        const response = await fetch(`http://api.weatherstack.com/current?access_key=${weatherKey}&query=${locationData.city}`);
-        if (!response.ok) throw new Error('Failed to fetch weather');
-        const weatherData = await response.json();
-        setWeatherData({
-          temperature: weatherData.current.temperature
-        })
+        // --- MOCK DATA FOR WEATHER ---
+        await new Promise(resolve => setTimeout(resolve, 500));
+        const mockWeatherData = {
+          current: { temperature: 15 } // ~59°F
+        };
+        console.log(`Weather (mock for ${locationData.city}):`, mockWeatherData);
+        setWeatherData(mockWeatherData.current);
+        // --- END MOCK DATA ---
+
+        /* --- REAL API CALL (Commented Out) ---
+         const weatherKey = "675b5dd3143ca6e34b7161c75e3f41c7"
+         const response = await fetch(`http://api.weatherstack.com/current?access_key=${weatherKey}&query=${locationData.city}`);
+         if (!response.ok) throw new Error('Failed to fetch weather');
+         const weatherData = await response.json();
+         setWeatherData(weatherData.current); */
       } catch (err: any) {
         setError(err.message);
       }
@@ -137,9 +148,9 @@ const App = () => {
             <div>
               <h2>Current Location</h2>
               <p>
-                {locationData.city}, {locationData.region}
+                {locationData.city}, {locationData.region_name}
               </p>
-              <p>{locationData.country}</p>
+              <p>{locationData.country_name}</p>
             </div>
 
           
@@ -154,20 +165,14 @@ const App = () => {
       <form onSubmit={handleSave}>
         <input
           type="text"
-          // VALUE matches "Memory 1" so React controls what's displayed
           value={inputCity}
-          // ONCHANGE updates "Memory 1" every time a key is pressed
           onChange={(e) => setInputCity(e.target.value)}
           placeholder="Enter city..."
         />
         <button type="submit">Save</button>
       </form>
-
-      {/* THE LIST connects to "Memory 2" */}
       <ul>
-        {/* We LOOP through the savedCities memory to draw each one */}
         {savedCities.map((city) => (
-          // MongoDB always gives us a unique '_id', perfect for the React 'key'
           <li key={city._id}>
             {city.name}
           </li>
