@@ -6,15 +6,17 @@ const App = () => {
   // --- STATE MANAGEMENT ---
   // State to store the detected location data
   const [locationData, setLocationData] = useState(null);
-  // State to handle loading status while fetching
   const [isLoading, setIsLoading] = useState(true);
   // State to handle any errors during the fetch
   const [error, setError] = useState(null);
 
   const[weatherData, setWeatherData] = useState(null);
 
-  // --- EFFECTS ---
-  // useEffect with an empty dependency array [] runs ONLY once when the component mounts.
+  
+  const [inputCity, setInputCity] = useState('');
+  const [savedCities, setSavedCities] = useState([]);
+  
+
   useEffect(() => {
     const fetchLocation = async () => {
       setIsLoading(true);
@@ -27,8 +29,8 @@ const App = () => {
 
         const locationData = await response.json();
 
-        // Once we have data, update state
-        console.log("Location detected:", locationData); // For debugging
+       
+        console.log("Location detected:", locationData);
         setLocationData({
           city: locationData.city || 'Unknown',
           region: locationData.region_name || 'Unknown',
@@ -37,13 +39,51 @@ const App = () => {
       } catch (err: any) {
         setError(err.message);
       } finally {
-        // Always turn off loading spinner, success or fail
         setIsLoading(false);
       }
     };
 
     fetchLocation();
-  }, []); // Empty dependency array, so it runs only once on mount.
+  }, []);
+
+  useEffect(() => {
+    fetchCities(); // Call our helper function immediately
+  }, []);
+  const fetchCities = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/cities');
+      const data = await response.json();
+      
+      setSavedCities(data);
+    } catch (error) {
+      console.error("Could not load cities:", error);
+    }
+  };
+
+  const handleSave = async (e) => {
+    e.preventDefault(); // Crucial: Stops the page from refreshing!
+
+    // Don't try to save if the box is empty
+    if (!inputCity.trim()) return;
+
+    try {
+      // 1. Send the "letter" to the server
+      const response = await fetch('http://localhost:3000/cities', {
+        method: 'POST', // We are SENDING data
+        headers: {
+          'Content-Type': 'application/json', // Telling server: "I am sending JSON"
+        },
+        // 2. The actual content of the "letter"
+        body: JSON.stringify({ name: inputCity }),
+      });
+      if (response.ok) {
+        setInputCity(''); // Clear the input box (make it ready for next one)
+        fetchCities();    // RE-RUN Step 2 to get the freshest list from the server
+      }
+    } catch (error) {
+      console.error("Could not save city:", error);
+    }
+  };
 
   // This effect runs whenever locationData changes
   useEffect(() => {
@@ -65,19 +105,18 @@ const App = () => {
     fetchWeather();
   }, [locationData]); // Dependency on locationData
 
-  // --- RENDERING ---
+  
   return (
     <div>
-      {/* Header */}
+      
       <header>
         <h1>Weather Finder</h1>
-        <p>Framework v1.0</p>
       </header>
 
-      {/* Main Content Card */}
+      
       <main>
 
-        {/* Conditional Rendering based on state */}
+       
         {isLoading && (
           <div>
              <div></div>
@@ -92,7 +131,7 @@ const App = () => {
           </div>
         )}
 
-        {/* Successfully loaded location */}
+        
         {!isLoading && !error && locationData && (
           <div>
             <div>
@@ -103,13 +142,38 @@ const App = () => {
               <p>{locationData.country}</p>
             </div>
 
-            {/* Placeholder for where actual weather data will go */}
+          
             <div>
               <h2>Current Weather</h2>
               {weatherData ? <p>{weatherData.temperature}°</p> : <p>Loading weather...</p>}
             </div>
           </div>
         )}
+        <div className="saved-cities-container">
+      <h2>My Saved Places</h2>
+      <form onSubmit={handleSave}>
+        <input
+          type="text"
+          // VALUE matches "Memory 1" so React controls what's displayed
+          value={inputCity}
+          // ONCHANGE updates "Memory 1" every time a key is pressed
+          onChange={(e) => setInputCity(e.target.value)}
+          placeholder="Enter city..."
+        />
+        <button type="submit">Save</button>
+      </form>
+
+      {/* THE LIST connects to "Memory 2" */}
+      <ul>
+        {/* We LOOP through the savedCities memory to draw each one */}
+        {savedCities.map((city) => (
+          // MongoDB always gives us a unique '_id', perfect for the React 'key'
+          <li key={city._id}>
+            {city.name}
+          </li>
+        ))}
+      </ul>
+    </div>
       </main>
     </div>
   );
