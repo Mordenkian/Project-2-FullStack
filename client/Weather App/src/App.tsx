@@ -5,16 +5,16 @@ import React, { useState, useEffect } from 'react';
 const App = () => {
   // --- STATE MANAGEMENT ---
   // State to store the detected location data
-  const [locationData, setLocationData] = useState(null);
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   // State to handle any errors during the fetch
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const[weatherData, setWeatherData] = useState(null);
+  const[weatherData, setWeatherData] = useState<WeatherData | null>(null);
 
   
   const [inputCity, setInputCity] = useState('');
-  const [savedCities, setSavedCities] = useState([]);
+  const [savedCities, setSavedCities] = useState<SavedCity[]>([]);
   
 
   useEffect(() => {
