@@ -13,4 +13,4 @@ mongoose
 mongodb
 cors
 
-React dom and react router dom are technically being used in the mian.jsx file, but it wasn't part of the testing environment so its technically never used. If implementing multiple pages these will be necessary. 
+React dom and react router dom are technically being used in the main.jsx file, but it wasn't part of the testing environment so its technically never used. If implementing multiple pages these will be necessary. 
