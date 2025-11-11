@@ -74,12 +74,10 @@ const SavedLocationsPage = () => {
         <button type="submit">Save</button>
       </form>
       <ul>
-        {savedCities.map((city) => (
-          <li key={city._id}>
-            <span>{city.name}</span>
-            <button onClick={() => handleDelete(city._id)}>Delete</button>
-          </li>
-        ))}
+        {savedCities.map((city) => (<li key={city._id}>
+          <span>{city.name}</span>
+          <button onClick={() => handleDelete(city._id)}>Delete</button>
+        </li>))}
       </ul>
     </div>
   );
