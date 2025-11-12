@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getUserId } from './getUserId';
+import axios from 'axios';
 
 interface WeatherData {
   temperature: number;
@@ -21,11 +22,10 @@ const HomePage = () => {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const response = await fetch(`https://ipapi.co/json/`);
-        if (!response.ok) throw new Error('Failed to fetch location');
-        const savedResponse = await fetch(`http://localhost:3000/cities/${userId}`);
-        let current = await response.json();
-        const data = await savedResponse.json();
+        const locationResponse = await axios.get(`https://ipapi.co/json/`);
+        const savedCitiesResponse = await axios.get(`http://localhost:3000/cities/${userId}`);
+        const current = locationResponse.data;
+        const data = savedCitiesResponse.data;
         const currentLocation: SavedCity = {
           _id: "current-location",
           name: current.city,
@@ -48,13 +48,12 @@ const HomePage = () => {
 
       setIsLoadingSavedWeather(true);
       try {
-        const weatherKey = "675b5dd3143ca6e34b7161c75e3f41c7";
-        const response = await fetch(`http://api.weatherstack.com/current?access_key=${weatherKey}&query=${city.name}`);
-        if (!response.ok) throw new Error('Failed to fetch weather');
-        const newWeatherData = await response.json();
+        const weatherKey = "1a10b0e32dea4346a1d64838251211 ";
+        const response = await axios.get(`http://api.weatherapi.com/v1/current.json?key=${weatherKey}&q=${city.name}`);
+        const newWeatherData = response.data;
         setWeatherData(prev => ({
           ...prev,
-          [city._id]: { temperature: newWeatherData.current.temperature }
+          [city._id]: { temperature: newWeatherData.current.temp_c }
         }));
       } catch (err) {
         console.error(`Could not fetch weather for ${city.name}:`, err);

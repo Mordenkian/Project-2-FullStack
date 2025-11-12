@@ -1,5 +1,6 @@
 import React, { useState, useEffect, type FormEvent } from 'react';
 import { getUserId } from './getUserId';
+import axios from 'axios';
 
 interface SavedCity {
   _id: string;
@@ -14,9 +15,8 @@ const SavedLocationsPage = () => {
 
   const fetchCities = async () => {
     try {
-      const response = await fetch(`http://localhost:3000/cities/${userId}`);
-      const data: SavedCity[] = await response.json();
-      setSavedCities(data);
+      const response = await axios.get(`http://localhost:3000/cities/${userId}`);
+      setSavedCities(response.data);
     } catch (error) {
       console.error("Could not load cities:", error);
     }
@@ -32,15 +32,9 @@ const SavedLocationsPage = () => {
     if (!inputCity.trim()) return;
 
     try {
-      const response = await fetch('http://localhost:3000/cities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: inputCity, userId: userId }),
-      });
-      if (response.ok) {
-        setInputCity('');
-        fetchCities(); // Refresh the list
-      }
+      await axios.post('http://localhost:3000/cities', { name: inputCity, userId: userId });
+      setInputCity('');
+      fetchCities();
     } catch (error) {
       console.error("Could not save city:", error);
     }
@@ -48,20 +42,10 @@ const SavedLocationsPage = () => {
 
   const handleDelete = async (cityId: string) => {
     try {
-      const response = await fetch(`http://localhost:3000/cities/${cityId}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        // As per our server implementation, we send the userId for verification
-        body: JSON.stringify({ userId: userId }),
+      await axios.delete(`http://localhost:3000/cities/${cityId}`, {
+        data: { userId: userId },
       });
-
-      if (response.ok) { // A 204 No Content response is considered "ok"
-        fetchCities(); // Refresh the list after successful deletion
-      } else {
-        console.error('Failed to delete city:', await response.json());
-      }
+      fetchCities(); 
     } catch (error) {
       console.error("Could not delete city:", error);
     }
