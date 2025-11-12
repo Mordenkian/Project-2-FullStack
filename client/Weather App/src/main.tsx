@@ -5,7 +5,7 @@ import {
   RouterProvider,
 } from "react-router-dom";
 import App from './App.tsx'
-import './index.css'
+import './App.css'
 import HomePage from './HomePage.tsx';
 import SavedLocationsPage from './SavedLocationsPage.tsx';
 

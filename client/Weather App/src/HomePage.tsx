@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getUserId } from './getUserId';
 
-// --- TYPE DEFINITIONS ---
-
 interface WeatherData {
   temperature: number;
 }
@@ -14,14 +12,12 @@ interface SavedCity {
 }
 
 const HomePage = () => {
-  // --- STATE MANAGEMENT ---
   const [weatherData, setWeatherData] = useState<Record<string, WeatherData | null>>({});
   const [savedCities, setSavedCities] = useState<SavedCity[]>([]);
   const [isLoadingSavedWeather, setIsLoadingSavedWeather] = useState(false);
   const userId = getUserId();
   const [index, setIndex] = useState(0);
-  
-  // Effect for fetching saved cities
+
   useEffect(() => {
     const fetchCities = async () => {
       try {
@@ -31,12 +27,11 @@ const HomePage = () => {
         let current = await response.json();
         const data = await savedResponse.json();
         const currentLocation: SavedCity = {
-          _id: "current-location", // Assign a unique, stable ID
-          name: current.city,      // Use 'name' to match the SavedCity interface
-          userId: "-1"             // Use a string to match the type
+          _id: "current-location",
+          name: current.city,
+          userId: "-1"
         };
-        const finaldata = [currentLocation, ...data];
-        setSavedCities(finaldata);
+        setSavedCities([currentLocation, ...data]);
       } catch (error) {
         console.error("Could not load cities:", error);
       }
@@ -45,13 +40,10 @@ const HomePage = () => {
     fetchCities();
   }, [userId]);
 
-  // Effect for fetching weather when the displayed city changes
   useEffect(() => {
     const fetchWeatherForCity = async () => {
       if (savedCities.length === 0) return;
-
       const city = savedCities[index];
-      // Don't re-fetch if we already have the data
       if (!city || weatherData[city._id]) return;
 
       setIsLoadingSavedWeather(true);
@@ -85,27 +77,54 @@ const HomePage = () => {
   };
 
   return (
-    <main>
-        <div>
-          <div>
-            <h1>Weather</h1>
-            {savedCities.length > 0 ? (
-              <div>
-                <button onClick={handlePrev}>Left</button>
-                <div>
-                  <h2>{savedCities[index].name}</h2>
-                  <p>
-                    {isLoadingSavedWeather ? 'Loading...' :
-                     weatherData[savedCities[index]._id] ? `${weatherData[savedCities[index]._id]?.temperature}°` : 'N/A'}
-                  </p>
-                </div>
-                <button onClick={handleNext}>Right</button>
-              </div>
-            ) : (
-              <p>No saved locations.</p>
-            )}
+    <main className="min-h-screen bg-gradient-to-br from-sky-100 to-blue-200 flex flex-col items-center justify-center p-6">
+      <div className="bg-white shadow-xl rounded-2xl w-full max-w-md p-8 text-center">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6">Weather</h1>
+
+        {savedCities.length > 0 ? (
+          <div className="flex items-center justify-between">
+            <button
+              onClick={handlePrev}
+              className="text-2xl font-bold text-blue-500 hover:text-blue-700 transition"
+            >
+              ⬅
+            </button>
+
+            <div className="flex flex-col items-center">
+              <h2 className="text-2xl font-semibold text-gray-800">
+                {savedCities[index].name}
+              </h2>
+              <p className="text-gray-500 text-sm mt-1">Local Weather</p>
+
+              <p className="text-6xl font-bold text-blue-600 mt-4">
+                {isLoadingSavedWeather
+                  ? '...'
+                  : weatherData[savedCities[index]._id]
+                  ? `${weatherData[savedCities[index]._id]?.temperature}°`
+                  : 'N/A'}
+              </p>
+            </div>
+
+            <button
+              onClick={handleNext}
+              className="text-2xl font-bold text-blue-500 hover:text-blue-700 transition"
+            >
+              ➡
+            </button>
           </div>
+        ) : (
+          <p className="text-gray-600 mt-4">No saved locations.</p>
+        )}
+
+        <div className="flex justify-center mt-8 gap-3">
+          <button className="px-4 py-2 bg-gray-200 text-gray-700 rounded-xl hover:bg-gray-300 transition">
+            Delete Location
+          </button>
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition">
+            Save Location
+          </button>
         </div>
+      </div>
     </main>
   );
 };
