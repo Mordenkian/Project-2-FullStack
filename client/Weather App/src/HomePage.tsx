@@ -100,7 +100,7 @@ const HomePage = () => {
                 {isLoadingSavedWeather
                   ? '...'
                   : weatherData[savedCities[index]._id]
-                  ? `${weatherData[savedCities[index]._id]?.temperature}°`
+                  ? `${weatherData[savedCities[index]._id]?.temperature}° C`
                   : 'N/A'}
               </p>
             </div>
