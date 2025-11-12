@@ -25,8 +25,7 @@ const HomePage = () => {
   useEffect(() => {
     const fetchCities = async () => {
       try {
-        const locationKey = '7abc0787623efaa1bbd42a880632dfc7'
-        const response = await fetch(`http://api.ipstack.com/check?access_key=${locationKey}&output=json`);
+        const response = await fetch(`https://ipapi.co/json/`);
         if (!response.ok) throw new Error('Failed to fetch location');
         const savedResponse = await fetch(`http://localhost:3000/cities/${userId}`);
         let current = await response.json();
